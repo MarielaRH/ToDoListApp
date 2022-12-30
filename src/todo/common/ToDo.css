@@ -1,0 +1,16 @@
+.item_todo_container{
+    background-color: rgb(140, 172, 221);
+    margin-bottom: 10px;
+    border-radius: 10px;
+}
+
+.item_todo_content{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+}
+
+.item_todo_actions > span{
+    margin-left: 5px;
+}
