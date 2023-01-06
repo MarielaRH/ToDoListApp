@@ -1,0 +1,25 @@
+.cancel-button {
+  background-color: grey !important;
+}
+.custom-dialog {
+  background-color: #303540 !important;
+  color: white !important;
+}
+
+.custom-input {
+  background-color: #99a0ad1c !important;
+  color: white !important;
+}
+
+.input-form > div > label {
+  color: white !important;
+}
+
+.custom-textarea {
+  background-color: #99a0ad1c !important;
+  color: white !important;
+}
+
+.textarea-form > div > label {
+  color: white !important;
+}

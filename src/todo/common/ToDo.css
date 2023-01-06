@@ -1,16 +1,31 @@
-.item_todo_container{
-    background-color: rgb(140, 172, 221);
-    margin-bottom: 10px;
-    border-radius: 10px;
+.todo-container{
+    background-color: #5F6673;
+    color:white
 }
+/* #F29C50
+#F26F63
+#BDD9A0 */
 
-.item_todo_content{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px;
-}
-
-.item_todo_actions > span{
+.item_todo_actions > svg{
     margin-left: 5px;
+}
+
+.item{
+    border-radius: 5px;
+    min-height: 100%;
+    width: 4px;
+}
+
+.custom-checkbox:checked{
+    background-color: #BDD9A0 !important;
+    border-color: #BDD9A0 !important;
+}
+
+
+.completed-todo{
+    background-color: #BDD9A0;
+}
+
+.pending-todo{
+    background-color: #F26F63;
 }

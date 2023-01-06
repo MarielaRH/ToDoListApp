@@ -1,0 +1,27 @@
+.toast-message {
+  background: darkblue;
+  color: #fff;
+  font-size: 20px;
+  width: 34vw;
+  padding: 30px 20px;
+}
+
+.layout_main {
+  background-color: #303540;
+}
+
+.navbar-style {
+  background-color: #3d4c5e !important;
+  border: none;
+}
+
+.todos-section{
+  height: calc(100% - 8rem);
+}
+.todos-section > div{
+  background-color: #5f66734f;
+}
+
+.footer{
+  background-color: #3d4c5e !important;
+}
