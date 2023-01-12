@@ -1,40 +1,53 @@
-import React, { ChangeEvent, useState, useEffect } from "react";
-import { filterType, Todo } from "./interfaces/interfaces";
+import React, { useState, useEffect } from "react";
+import {
+  filterType,
+  INITIAL_TODO,
+  StateValue,
+  Todo,
+} from "./interfaces/interfaces";
 import { ToDo } from "./common/ToDo";
 import "./ToDoList.css";
 import uuid from "react-uuid";
-import { Button, Navbar } from "@material-tailwind/react";
+import {
+  Button,
+  Menu,
+  MenuHandler,
+  MenuItem,
+  MenuList,
+  Navbar,
+} from "@material-tailwind/react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import DialogTodo from "./common/DialogTodo";
+import { DialogTodo } from "./common/DialogTodo";
 
 type Filter = "ALL" | "DONE" | "TODO";
-type State = "red" | "yellow" | "green";
+type State = {
+  color: string;
+  description: string;
+};
 const filterTypeTodo = filterType;
 
 export const ToDoList = () => {
-  const [todoValue, setTodoValue] = useState<Todo | null>(null);
+  const [todoValue, setTodoValue] = useState<Todo>(INITIAL_TODO);
   const [todoList, setTodoList] = useState<Todo[]>([]);
   const [filter, setFilter] = useState<Filter>("ALL");
-  const [todoInEdition, setTodoInEdition] = useState<Todo | null>(null);
-  const [todoListState, setTodoListState] = useState<State>("yellow");
+  const [todoListState, setTodoListState] = useState<State>(StateValue.WARNING);
   const [showDialog, setShowDialog] = useState<boolean>(false);
 
   useEffect(() => {
-    let completedCount = 0;
-    todoList.forEach((todo) => {
+    const completedCount = todoList.reduce((count, todo) => {
       if (todo.completed) {
-        completedCount += 1;
+        return count + 1;
       }
-      ``;
-    });
+      return count;
+    }, 0);
 
     if (completedCount === todoList.length) {
-      setTodoListState("green");
+      setTodoListState(StateValue.OK);
     } else if (completedCount >= todoList.length / 2) {
-      setTodoListState("yellow");
+      setTodoListState(StateValue.WARNING);
     } else if (completedCount < todoList.length / 2) {
-      setTodoListState("red");
+      setTodoListState(StateValue.CRITICAL);
     }
   }, [todoList]);
 
@@ -47,24 +60,27 @@ export const ToDoList = () => {
   };
 
   /**
-   * It add a new todo in Todolist and clean Input's value
+   * Adds a new todo in Todolist and cleans Input's value
    * @param event
    */
   const handlerSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (todoValue?.id) {
-      setTodoList(
-        todoList.filter((todoItem) => {
-          if (todoItem.id == todoValue.id) {
-            todoItem.name = todoValue.name;
-          }
-          return todoItem;
-        })
-      );
+      const mapList = todoList.map((todoItem) => {
+        const newItem = { ...todoItem };
+        if (todoItem.id === todoValue.id) {
+          newItem.name = todoValue.name;
+          newItem.description = todoValue.description;
+          newItem.completed = todoValue.completed;
+        }
+        return newItem;
+      });
+
+      setTodoList(mapList);
       showToastMessage("Tarea editada con éxito");
     } else {
-      // It Add a new todo to the list
+      // Adds a new todo to the list
       if (todoValue?.name) {
         setTodoList([
           ...todoList,
@@ -79,63 +95,18 @@ export const ToDoList = () => {
       showToastMessage("Tarea agregada con éxito");
       setFilter("ALL");
     }
-    // Clean the todo state
-    setTodoValue(null);
+    // Cleans the todo state
+    setTodoValue(INITIAL_TODO);
     setShowDialog(false);
-
-    // If todo is in edition, c
-    if (todoInEdition) {
-      setTodoInEdition(null);
-    }
   };
 
   /**
-   * It Obtain input's value
-   * @param event: ChangeEvent<HTMLInputElement>
-   */
-  const handlerChangeInput = (event: ChangeEvent<HTMLInputElement>) => {
-    // if input's value is valid, it updated state
-    if (todoValue?.id) {
-      setTodoValue({
-        id: todoValue.id,
-        name: event.target.value,
-        completed: todoValue.completed,
-        description: todoValue ? todoValue.description : "",
-      });
-    } else {
-      setTodoValue({
-        name: event.target.value,
-        completed: false,
-        description: todoValue ? todoValue.description : "",
-      });
-    }
-  };
-
-  const handlerChangeTextarea = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    // if input's value is valid, it updated state
-    if (todoValue?.id) {
-      setTodoValue({
-        id: todoValue.id,
-        name: todoValue ? todoValue.name : "",
-        completed: todoValue.completed,
-        description: event.target.value,
-      });
-    } else {
-      setTodoValue({
-        name: todoValue ? todoValue.name : "",
-        completed: false,
-        description: event.target.value,
-      });
-    }
-  };
-
-  /**
-   * Delete specific todo
+   * Deletes specific todo
    * @param todo: Todo
    */
   const onDeleteTodo = (todo: Todo) => {
-    // const filterList = todoList.filter((todoItem) => todoItem.id !== todo.id);
-    setTodoList(todoList.filter((todoItem) => todoItem.id !== todo.id));
+    const filterList = todoList.filter((todoItem) => todoItem.id !== todo.id);
+    setTodoList(filterList);
   };
 
   /**
@@ -143,14 +114,14 @@ export const ToDoList = () => {
    * @param todo: Todo
    */
   const onCompleteTodo = (todo: Todo) => {
-    setTodoList(
-      todoList.filter((todoItem) => {
-        if (todoItem.id == todo.id) {
-          todoItem.completed = !todoItem.completed;
-        }
-        return todoItem;
-      })
-    );
+    const mapList = todoList.map((todoItem) => {
+      const newItem = { ...todoItem };
+      if (todoItem.id === todo.id) {
+        newItem.completed = !newItem.completed;
+      }
+      return newItem;
+    });
+    setTodoList(mapList);
   };
 
   /**
@@ -160,32 +131,22 @@ export const ToDoList = () => {
   const onUpdateTodo = (todo: Todo) => {
     setShowDialog(true);
     setTodoValue(todo);
-    setTodoInEdition(todo);
   };
 
-  const showDescriptionStatus = () => {
-    switch (todoListState) {
-      case "green":
-        return "Haz terminado todas las tareas";
-      case "yellow":
-        return "Ya casi llegas a la meta!";
-      case "red":
-        return "Debes realizar las tareas";
-    }
+  const deleteFinishedTasks = () => {
+    const filterList = todoList.filter((todoItem) => !todoItem.completed);
+    setTodoList(filterList);
   };
 
   return (
     <div className="h-screen layout_main">
       <DialogTodo
-        handlerChangeInput={handlerChangeInput}
-        handlerChangeTextarea={handlerChangeTextarea}
         handlerSubmit={handlerSubmit}
         setShowDialog={setShowDialog}
         setTodoValue={setTodoValue}
         showDialog={showDialog}
-        todoInEdition={todoInEdition}
         todoValue={todoValue}
-      ></DialogTodo>
+      />
 
       {/* Navbar application */}
       <Navbar className="min-w-full h-20 rounded-none navbar-style">
@@ -194,7 +155,9 @@ export const ToDoList = () => {
             <Button
               variant="text"
               className={`ml-2 mr-2 ${
-                filter == "ALL" ? "bg-blue-400 text-white hover:bg-blue-400" : "hover:text-white"
+                filter === "ALL"
+                  ? "bg-blue-400 text-white hover:bg-blue-400"
+                  : "hover:text-white"
               }`}
               onClick={() => setFilter("ALL")}
             >
@@ -203,7 +166,9 @@ export const ToDoList = () => {
             <Button
               variant="text"
               className={`ml-2 mr-2 ${
-                filter == "TODO" ? "bg-blue-400 text-white hover:bg-blue-400" : "hover:text-white"
+                filter === "TODO"
+                  ? "bg-blue-400 text-white hover:bg-blue-400"
+                  : "hover:text-white"
               }`}
               onClick={() => setFilter("TODO")}
             >
@@ -212,86 +177,104 @@ export const ToDoList = () => {
             <Button
               variant="text"
               className={`ml-2 mr-2 ${
-                filter == "DONE" ? "bg-blue-400 text-white hover:bg-blue-400" : "hover:text-white"
+                filter === "DONE"
+                  ? "bg-blue-400 text-white hover:bg-blue-400"
+                  : "hover:text-white"
               }`}
               onClick={() => setFilter("DONE")}
             >
               Finalizadas
             </Button>
           </div>
-          <Button
-            variant="gradient"
-            size="sm"
-            className="lg:inline-block rounded-full p-2"
-            onClick={() => setShowDialog(true)}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="1.5"
-              stroke="currentColor"
-              className="w-6 h-6"
+          <div className="flex items-center justify-center">
+            <Button
+              variant="gradient"
+              size="sm"
+              className="lg:inline-block rounded-full p-2 mr-5"
+              onClick={() => setShowDialog(true)}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 6v12m6-6H6"
-              />
-            </svg>
-          </Button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-6 h-6"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 6v12m6-6H6"
+                />
+              </svg>
+            </Button>
+            <Menu>
+              <MenuHandler>
+                <Button className="p-2 rounded-full">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-6 h-6"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                    />
+                  </svg>
+                </Button>
+              </MenuHandler>
+              <MenuList>
+                <MenuItem onClick={() => setTodoList([])} disabled={todoList.length === 0}>
+                  Eliminar todas las tares
+                </MenuItem>
+                <MenuItem onClick={deleteFinishedTasks} disabled={todoList.length === 0}>
+                  Eliminar tareas terminadas
+                </MenuItem>
+              </MenuList>
+            </Menu>
+          </div>
         </div>
       </Navbar>
 
       {/* TODO items */}
       <div className="grid w-full p-5 rounded-2xl todos-section">
         <div className="rounded p-5 overflow-y-auto overflow-x-hidden">
-          {todoList.map((todo) => {
-            if (filter == filterTypeTodo.all) {
-              return (
-                <ToDo
-                  item={todo}
-                  onDeleteTodo={onDeleteTodo}
-                  onCompleteTodo={onCompleteTodo}
-                  onUpdateTodo={onUpdateTodo}
-                  key={todo.id}
-                />
-              );
-            } else if (filter == filterTypeTodo.done) {
-              if (todo.completed) {
-                return (
-                  <ToDo
-                    item={todo}
-                    onDeleteTodo={onDeleteTodo}
-                    onCompleteTodo={onCompleteTodo}
-                    onUpdateTodo={onUpdateTodo}
-                    key={todo.id}
-                  />
-                );
-              }
-            } else if (filter == filterTypeTodo.todo) {
-              if (!todo.completed) {
-                return (
-                  <ToDo
-                    item={todo}
-                    onDeleteTodo={onDeleteTodo}
-                    onCompleteTodo={onCompleteTodo}
-                    onUpdateTodo={onUpdateTodo}
-                    key={todo.id}
-                  />
-                );
-              }
-            }
-          })}
+          {todoList
+            .filter((todo) => {
+              if (filter === filterTypeTodo.all) return true;
+              else if (filter === filterTypeTodo.done) return todo.completed;
+              else if (filter === filterTypeTodo.todo) return !todo.completed;
+            })
+            .map((todo) => (
+              <ToDo
+                item={todo}
+                onDeleteTodo={onDeleteTodo}
+                onCompleteTodo={onCompleteTodo}
+                onUpdateTodo={onUpdateTodo}
+                key={todo.id}
+              />
+            ))}
         </div>
       </div>
 
       {/* Global state indicator */}
       <div className="w-full flex justify-center items-center footer h-12 rounded-none">
-        <div
-          className={`h-4 w-4 bg-${todoListState}-500 rounded-full mr-3`}
-        ></div>
-        <div className="text-xs text-white">{showDescriptionStatus()}</div>
+        {todoList.length > 0 ? (
+          <>
+            <div
+              className={`h-4 w-4 bg-${todoListState.color.toLowerCase()}-500 rounded-full mr-3`}
+            ></div>
+            <div className="text-xs text-white">
+              {todoListState.description}
+            </div>
+          </>
+        ) : (
+          <div className="text-xs text-white">Empieza a crear tus tareas!</div>
+        )}
       </div>
 
       <ToastContainer />
