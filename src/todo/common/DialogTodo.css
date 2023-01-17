@@ -4,6 +4,7 @@
 .custom-dialog {
   background-color: #303540 !important;
   color: white !important;
+  min-width: 300px !important;
 }
 
 .custom-input {
